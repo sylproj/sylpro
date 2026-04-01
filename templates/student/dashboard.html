@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}My Dashboard{% endblock %}
+{% block content %}
+
+<div class="ph">
+    <h1 class="ph-title">My Dashboard</h1>
+    <p class="ph-sub">Welcome back, {{ student.name if student else 'Student' }}</p>
+</div>
+
+{% if not student %}
+<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:1rem 1.1rem;font-size:.84rem;color:#92400E;display:flex;gap:9px">
+    <i class="bi bi-exclamation-triangle-fill" style="flex-shrink:0;margin-top:1px"></i>
+    <span>Your student profile has not been set up yet. Please contact the admin office.</span>
+</div>
+{% else %}
+
+{% set rate = att_summary.attendance_rate if att_summary and att_summary.attendance_rate is not none else none %}
+{% set gpa  = grade.gpa if grade else none %}
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="scard scard-accent-border">
+            <div class="scard-label">Sessions Attended</div>
+            <div class="scard-val scard-accent">{{ att_summary.attended if att_summary and att_summary.total_sessions > 0 else '—' }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="scard scard-red-border">
+            <div class="scard-label">Sessions Missed</div>
+            <div class="scard-val scard-red">{{ att_summary.absences if att_summary and att_summary.total_sessions > 0 else '—' }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="scard {% if rate is not none and rate >= 75 %}scard-green-border{% elif rate is not none %}scard-amber-border{% endif %}">
+            <div class="scard-label">Attendance Rate</div>
+            <div class="scard-val {% if rate is not none and rate >= 75 %}scard-green{% elif rate is not none %}scard-amber{% endif %}">
+                {% if rate is not none %}{{ rate }}%{% else %}—{% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="scard {% if gpa is not none and gpa >= 2.0 %}scard-green-border{% elif gpa is not none %}scard-red-border{% endif %}">
+            <div class="scard-label">Current GPA</div>
+            <div class="scard-val {% if gpa is not none and gpa >= 3.0 %}scard-green{% elif gpa is not none and gpa >= 2.0 %}scard-amber{% elif gpa is not none %}scard-red{% endif %}">
+                {{ gpa if gpa is not none else '—' }}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if gpa is not none and gpa < 2.0 %}
+<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:.85rem 1rem;margin-bottom:1.25rem;font-size:.84rem;color:#B91C1C;display:flex;gap:9px">
+    <i class="bi bi-exclamation-circle-fill" style="flex-shrink:0;margin-top:1px"></i>
+    <span><strong>Academic alert:</strong> Your GPA of {{ gpa }} is below the passing threshold of 2.0. Consider speaking with your lecturer or academic advisor.</span>
+</div>
+{% endif %}
+
+{% if rate is not none and rate < 75 %}
+<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:.85rem 1rem;margin-bottom:1.25rem;font-size:.84rem;color:#92400E;display:flex;gap:9px">
+    <i class="bi bi-exclamation-triangle-fill" style="flex-shrink:0;margin-top:1px"></i>
+    <span><strong>Attendance alert:</strong> Your attendance rate of {{ rate }}% is below the required 75%. Regular attendance is essential for academic success.</span>
+</div>
+{% endif %}
+
+<div class="row g-3">
+    <!-- Nudges -->
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-hd"><i class="bi bi-bell"></i>Notifications &amp; Guidance</div>
+            <div class="card-bd" style="display:flex;flex-direction:column;gap:10px">
+                {% if nudges %}
+                    {% for nudge in nudges %}
+                    <div style="background:{% if nudge.type == 'warning' %}#FFFBEB{% elif nudge.type == 'success' %}#ECFDF5{% else %}var(--p50){% endif %};
+                                border:1px solid {% if nudge.type == 'warning' %}#FDE68A{% elif nudge.type == 'success' %}#A7F3D0{% else %}var(--p100){% endif %};
+                                border-radius:10px;padding:.85rem 1rem;
+                                display:flex;align-items:flex-start;gap:10px;font-size:.84rem;
+                                color:{% if nudge.type == 'warning' %}#92400E{% elif nudge.type == 'success' %}#065F46{% else %}var(--p700){% endif %}">
+                        <span style="font-size:1.3rem;flex-shrink:0;line-height:1.2">{{ nudge.icon }}</span>
+                        <span>{{ nudge.message }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div style="text-align:center;padding:2rem 1rem">
+                    <i class="bi bi-check-circle-fill" style="font-size:2.5rem;color:#10B981;display:block;margin-bottom:.6rem"></i>
+                    <p style="font-size:.88rem;color:var(--muted);margin:0">You're on track — no alerts at this time. Keep it up!</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile + Academic -->
+    <div class="col-md-5" style="display:flex;flex-direction:column;gap:12px">
+        <div class="card">
+            <div class="card-hd"><i class="bi bi-person-circle"></i>My Profile</div>
+            <div class="card-bd" style="display:flex;flex-direction:column;gap:.55rem">
+                {% for label, value in [('Student No.', student.student_no), ('Course', student.course or '—'), ('Year', 'Year ' ~ student.year if student.year else '—')] %}
+                <div style="display:flex;justify-content:space-between;font-size:.84rem">
+                    <span style="color:var(--muted)">{{ label }}</span>
+                    <span style="font-weight:500">{{ value }}</span>
+                </div>
+                {% endfor %}
+                <hr class="divider">
+                <a href="{{ url_for('student_attendance') }}" class="btn btn-outline" style="justify-content:center">
+                    <i class="bi bi-calendar3"></i>View Full Attendance
+                </a>
+            </div>
+        </div>
+
+        {% if grade %}
+        <div class="card">
+            <div class="card-hd"><i class="bi bi-journal"></i>Academic Record</div>
+            <div class="card-bd" style="display:flex;flex-direction:column;gap:.55rem">
+                {% set gc_labels = {0:'A — Excellent',1:'B — Good',2:'C — Average',3:'D — Below Average',4:'F — Failing'} %}
+                <div style="display:flex;justify-content:space-between;font-size:.84rem">
+                    <span style="color:var(--muted)">GPA</span>
+                    <span style="font-weight:700;color:{% if grade.gpa >= 3.0 %}var(--green){% elif grade.gpa >= 2.0 %}var(--amber){% else %}var(--red){% endif %}">
+                        {{ grade.gpa }}
+                        {% if grade.gpa < 2.0 %}<span style="font-size:.72rem;margin-left:4px"> Failing</span>{% endif %}
+                    </span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:.84rem">
+                    <span style="color:var(--muted)">Grade</span>
+                    <span style="font-weight:500">{{ gc_labels.get(grade.grade_class, '—') }}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:.84rem">
+                    <span style="color:var(--muted)">Absences</span>
+                    <span style="font-weight:500;color:{% if grade.absences >= 10 %}var(--red){% elif grade.absences >= 6 %}var(--amber){% else %}var(--green){% endif %}">{{ grade.absences }}</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

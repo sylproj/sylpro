@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Lecturer Overview{% endblock %}
+{% block content %}
+
+<div class="ph">
+    <div class="ph-row">
+        <div>
+            <h1 class="ph-title">Lecturer Dashboard</h1>
+            <p class="ph-sub">Record attendance, upload grades and monitor your class</p>
+        </div>
+        <div style="display:flex;gap:8px">
+            <a href="{{ url_for('lecturer_attendance') }}" class="btn btn-primary"><i class="bi bi-calendar-check"></i>Take Attendance</a>
+            <a href="{{ url_for('lecturer_grades') }}"     class="btn btn-outline"><i class="bi bi-journal-text"></i>Upload Grades</a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3"><div class="scard scard-accent-border"><div class="scard-label">Students</div><div class="scard-val scard-accent">{{ students|length }}</div></div></div>
+    <div class="col-6 col-md-3"><div class="scard"><div class="scard-label">Attendance Today</div><div class="scard-val">{{ today_count }}</div></div></div>
+    <div class="col-6 col-md-3">
+        <a href="{{ url_for('lecturer_class_risk') }}" style="text-decoration:none">
+            <div class="scard scard-red-border" style="cursor:pointer">
+                <div class="scard-label">Class Risk View</div>
+                <div class="scard-val" style="font-size:1rem;margin-top:4px;color:var(--muted)">View <i class="bi bi-arrow-right" style="font-size:.9rem"></i></div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="{{ url_for('lecturer_grades') }}" style="text-decoration:none">
+            <div class="scard scard-green-border" style="cursor:pointer">
+                <div class="scard-label">Grade Upload</div>
+                <div class="scard-val" style="font-size:1rem;margin-top:4px;color:var(--muted)">Upload <i class="bi bi-arrow-right" style="font-size:.9rem"></i></div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-hd"><i class="bi bi-people"></i>Registered Students</div>
+    <div class="card-bd-0">
+        <table class="table">
+            <thead><tr><th>Name</th><th>Student No.</th><th>Course</th><th>Year</th></tr></thead>
+            <tbody>
+            {% for s in students %}
+            <tr>
+                <td style="font-weight:500">{{ s.name }}</td>
+                <td style="color:var(--muted);font-size:.82rem">{{ s.student_no }}</td>
+                <td style="color:var(--muted)">{{ s.course or '—' }}</td>
+                <td>{% if s.year %}Year {{ s.year }}{% else %}—{% endif %}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4"><div class="empty"><i class="bi bi-people"></i><p>No students registered yet.</p></div></td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Risk Results{% endblock %}
+{% block content %}
+
+<div class="ph">
+    <div class="ph-row">
+        <div>
+            <h1 class="ph-title">Risk Results</h1>
+            <p class="ph-sub">Latest risk score per student</p>
+        </div>
+        <div style="display:flex;gap:8px">
+            <form method="POST" action="/counselor/batch-run" style="margin:0">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-play-circle"></i>Run All</button>
+            </form>
+            <a href="/counselor/download" class="btn btn-green"><i class="bi bi-download"></i>Download CSV</a>
+        </div>
+    </div>
+</div>
+
+<!-- Filter tabs -->
+<div style="display:flex;gap:6px;margin-bottom:1.25rem;flex-wrap:wrap">
+    {% for level in ['ALL','HIGH','MEDIUM','LOW','MINIMAL'] %}
+    <a href="{{ url_for('counselor_results', level=level) }}"
+       class="btn btn-sm {{ 'btn-primary' if selected_level == level else 'btn-outline' }}">
+        {{ level }}
+    </a>
+    {% endfor %}
+</div>
+
+<div class="card">
+    <div class="card-bd-0">
+        <table class="table">
+            <thead>
+                <tr><th>Student</th><th>Course</th><th>Risk Level</th><th>Score</th><th>GPA</th><th>Attendance</th><th>MH Score</th><th>Flags</th><th>Date</th></tr>
+            </thead>
+            <tbody>
+            {% for s in scores %}
+            <tr>
+                <td>
+                    <div style="font-weight:500">{{ s.student_name }}</div>
+                    <div style="font-size:.76rem;color:var(--faint)">{{ s.student_no }}</div>
+                </td>
+                <td style="color:var(--muted);font-size:.82rem">{{ s.course or '—' }}</td>
+                <td><span class="rbadge rb-{{ s.risk_level }}">{{ s.risk_level }}</span></td>
+                <td>
+                    <div style="font-weight:600">{{ (s.risk_score * 100)|round(1) }}%</div>
+                    <div class="rbar"><div class="rbar-fill rf-{{ s.risk_level }}" style="width:{{ (s.risk_score*100)|int }}%"></div></div>
+                </td>
+                <td style="font-weight:500">{{ s.gpa or '—' }}</td>
+                <td style="font-weight:500">{{ s.attendance_rate or '—' }}{% if s.attendance_rate %}%{% endif %}</td>
+                <td style="font-weight:500">{{ s.mh_score or '0' }}/3</td>
+                <td>
+                    <div style="display:flex;gap:4px;flex-wrap:wrap">
+                        {% if s.cond_gpa %}<span class="rbadge" style="background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA;font-size:.62rem">GPA</span>{% endif %}
+                        {% if s.cond_attendance %}<span class="rbadge" style="background:#FFFBEB;color:#92400E;border:1px solid #FDE68A;font-size:.62rem">ABS</span>{% endif %}
+                        {% if s.cond_mh %}<span class="rbadge" style="background:var(--p50);color:var(--p700);border:1px solid var(--p100);font-size:.62rem">MH</span>{% endif %}
+                        {% if not s.cond_gpa and not s.cond_attendance and not s.cond_mh %}<span style="color:var(--faint);font-size:.8rem">None</span>{% endif %}
+                    </div>
+                </td>
+                <td style="color:var(--faint);font-size:.78rem">{{ s.date_run[:10] if s.date_run else '—' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="9"><div class="empty"><i class="bi bi-bar-chart-line"></i><p>No results yet. Run the model from the dashboard.</p></div></td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

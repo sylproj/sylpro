@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Counselor Overview{% endblock %}
+{% block content %}
+
+<div class="ph">
+    <div class="ph-row">
+        <div>
+            <h1 class="ph-title">Counselor Dashboard</h1>
+            <p class="ph-sub">Assess students and manage dropout risk predictions</p>
+        </div>
+        <div style="display:flex;gap:8px">
+            <form method="POST" action="/counselor/batch-run" style="margin:0"
+                  onsubmit="return confirm('Run the risk model for all students with complete data?\n\nThis will overwrite existing scores with fresh predictions.')">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-play-circle"></i>Run All Students</button>
+            </form>
+            <a href="/counselor/results"  class="btn btn-outline"><i class="bi bi-bar-chart-line"></i>Results</a>
+            <a href="/counselor/download" class="btn btn-green"><i class="bi bi-download"></i>Download</a>
+        </div>
+    </div>
+</div>
+
+{% if summary and summary.total_scored %}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3"><div class="scard scard-accent-border"><div class="scard-label">Scored</div><div class="scard-val scard-accent">{{ summary.total_scored or 0 }}</div></div></div>
+    <div class="col-6 col-md-3"><div class="scard scard-red-border"><div class="scard-label">High Risk</div><div class="scard-val scard-red">{{ summary.high_count or 0 }}</div></div></div>
+    <div class="col-6 col-md-3"><div class="scard scard-amber-border"><div class="scard-label">Medium Risk</div><div class="scard-val scard-amber">{{ summary.medium_count or 0 }}</div></div></div>
+    <div class="col-6 col-md-3"><div class="scard scard-green-border"><div class="scard-label">Minimal Risk</div><div class="scard-val scard-green">{{ summary.minimal_count or 0 }}</div></div></div>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-hd">
+        <i class="bi bi-people"></i>All Students
+        <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+            <!-- Search -->
+            <input type="text" id="studentSearch" class="form-control"
+                   placeholder="Search students…" oninput="filterStudents()"
+                   style="font-size:.78rem;padding:4px 10px;width:180px">
+            <!-- Legend -->
+            <div style="display:flex;gap:10px;font-size:.73rem;color:var(--faint)">
+                <span><span class="sbadge sb-ready">Ready</span></span>
+                <span><span class="sbadge sb-partial">Partial</span></span>
+                <span><span class="sbadge sb-incomplete">Incomplete</span></span>
+            </div>
+        </div>
+    </div>
+    <div class="card-bd-0">
+        <table class="table" id="studentsTable">
+            <thead>
+                <tr><th>Student</th><th>Course</th><th>Data</th><th>Missing</th><th>Risk</th><th>Score</th><th>Last Scored</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+            {% for item in student_status %}
+            {% set s = item.student %}
+            {% set st = item.status %}
+            {% set risk = item.risk %}
+            {% set last_risk = st.last_scored %}
+            <tr class="student-row">
+                <td style="font-weight:500">{{ s.name }}</td>
+                <td style="color:var(--muted)">{{ s.course or '—' }}{% if s.year %} Yr {{ s.year }}{% endif %}</td>
+                <td>
+                    {% if st.status == 'ready' %}<span class="sbadge sb-ready">Ready</span>
+                    {% elif st.status == 'partial' %}<span class="sbadge sb-partial">Partial</span>
+                    {% else %}<span class="sbadge sb-incomplete">Incomplete</span>{% endif %}
+                </td>
+                <td style="color:var(--faint);font-size:.8rem">
+                    {% if st.missing %}{{ st.missing | join(', ') }}
+                    {% else %}<span style="color:var(--green)">All present</span>{% endif %}
+                </td>
+                <td>
+                    {% if risk %}<span class="rbadge rb-{{ risk.risk_level }}">{{ risk.risk_level }}</span>
+                    {% else %}<span style="color:var(--faint)">—</span>{% endif %}
+                </td>
+                <td>
+                    {% if risk %}
+                    <div style="font-weight:600;font-size:.84rem">{{ (risk.risk_score * 100)|round(1) }}%</div>
+                    <div class="rbar"><div class="rbar-fill rf-{{ risk.risk_level }}" style="width:{{ (risk.risk_score*100)|int }}%"></div></div>
+                    {% else %}<span style="color:var(--faint)">—</span>{% endif %}
+                </td>
+                <td style="font-size:.78rem;color:var(--faint)">
+                    {% if last_risk %}
+                        {{ last_risk.date_run[:10] }}
+                    {% else %}
+                        Never
+                    {% endif %}
+                </td>
+                <td>
+                    <div style="display:flex;gap:5px">
+                        <a href="/counselor/assess/{{ s.id }}" class="btn btn-sm btn-outline" title="MH Assessment"><i class="bi bi-clipboard-pulse"></i></a>
+                        {% if st.status == 'ready' %}
+                        <a href="/counselor/predict/run/{{ s.id }}" class="btn btn-sm btn-green" title="Run Model"><i class="bi bi-play-fill"></i></a>
+                        {% endif %}
+                        {% if risk %}
+                        <a href="/counselor/predict/view/{{ s.id }}" class="btn btn-sm btn-outline" title="View Result"><i class="bi bi-eye"></i></a>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8"><div class="empty"><i class="bi bi-people"></i><p>No students registered yet.</p></div></td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+{% block extra_scripts %}
+<script>
+function filterStudents() {
+    const q = document.getElementById('studentSearch').value.toLowerCase();
+    document.querySelectorAll('#studentsTable .student-row').forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}

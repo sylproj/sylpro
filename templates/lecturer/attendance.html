@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Record Attendance{% endblock %}
+{% block content %}
+
+<div class="ph">
+    <div class="ph-row">
+        <div>
+            <h1 class="ph-title">Record Attendance</h1>
+            <p class="ph-sub">Mark present or absent for today's session</p>
+        </div>
+        <a href="{{ url_for('lecturer_dashboard') }}" class="btn btn-outline"><i class="bi bi-arrow-left"></i>Back</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-hd"><i class="bi bi-calendar-check"></i>Session Details</div>
+    <div class="card-bd">
+        <form method="POST">
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label">Date</label>
+                    <input type="date" name="date" class="form-control" value="{{ today }}" required>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Session / Module Name</label>
+                    <input type="text" name="session" class="form-control" placeholder="e.g. Introduction to AI" required>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-save"></i>Save Attendance</button>
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+                <p style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--faint);margin:0">Student List</p>
+                <div style="display:flex;gap:8px">
+                    <button type="button" class="btn btn-sm btn-outline" onclick="setAll(true)">Mark All Present</button>
+                    <button type="button" class="btn btn-sm btn-outline" onclick="setAll(false)">Mark All Absent</button>
+                </div>
+            </div>
+
+            <table class="table">
+                <thead><tr><th>#</th><th>Name</th><th>Student No.</th><th>Course</th><th style="text-align:center">Present</th></tr></thead>
+                <tbody>
+                {% for s in students %}
+                <tr>
+                    <td style="color:var(--faint)">{{ loop.index }}</td>
+                    <td style="font-weight:500">{{ s.name }}</td>
+                    <td style="color:var(--muted);font-size:.82rem">{{ s.student_no }}</td>
+                    <td style="color:var(--muted)">{{ s.course or '—' }}</td>
+                    <td style="text-align:center">
+                        <input type="checkbox" name="present_{{ s.id }}" class="att-check"
+                               style="width:1.15em;height:1.15em;accent-color:var(--p500);cursor:pointer" checked>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5"><div class="empty"><i class="bi bi-people"></i><p>No students found.</p></div></td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+function setAll(checked) {
+    document.querySelectorAll('.att-check').forEach(c => c.checked = checked);
+}
+</script>
+{% endblock %}

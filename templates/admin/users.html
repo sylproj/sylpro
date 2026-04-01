@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<div class="ph">
+    <div class="ph-row">
+        <div><h1 class="ph-title">Users</h1><p class="ph-sub">Manage system access and roles</p></div>
+        <a href="{{ url_for('admin_add_user') }}" class="btn btn-primary"><i class="bi bi-plus"></i>Add User</a>
+    </div>
+</div>
+<div class="card">
+    <div class="card-bd-0">
+        <table class="table">
+            <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+            {% for u in users %}
+            <tr>
+                <td style="color:var(--faint)">{{ u.id }}</td>
+                <td style="font-weight:500">{{ u.name }}</td>
+                <td style="color:var(--muted)">{{ u.email }}</td>
+                <td><span class="rolebadge rb-{{ u.role }}">{{ u.role }}</span></td>
+                <td><span class="sbadge {{ 'sb-active' if u.is_active else 'sb-inactive' }}">{{ 'Active' if u.is_active else 'Inactive' }}</span></td>
+                <td>
+                    <div style="display:flex;gap:6px">
+                        <a href="{{ url_for('admin_toggle_user', user_id=u.id) }}"
+                           class="btn btn-sm {{ 'btn-amber' if u.is_active else 'btn-green' }}">
+                            {{ 'Disable' if u.is_active else 'Enable' }}
+                        </a>
+                        {% if u.id != session.user_id %}
+                        <form method="POST" action="{{ url_for('admin_delete_user', user_id=u.id) }}"
+                              onsubmit="return confirm('Delete {{ u.name }}? This removes all their data permanently.')">
+                            <button type="submit" class="btn btn-sm btn-red"><i class="bi bi-trash"></i>Delete</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

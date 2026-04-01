@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Risk Result — {{ student.name }}{% endblock %}
+{% block content %}
+
+<div class="ph">
+    <div class="ph-row">
+        <div>
+            <h1 class="ph-title">Risk Prediction Result</h1>
+            <p class="ph-sub">{{ student.name }} &bull; {{ student.student_no }}</p>
+        </div>
+        <div style="display:flex;gap:8px">
+            <a href="/counselor/results"  class="btn btn-outline"><i class="bi bi-bar-chart-line"></i>All Results</a>
+            <a href="/counselor/download" class="btn btn-green"><i class="bi bi-download"></i>Download</a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- Score Panel -->
+    <div class="col-md-4">
+        <div class="card" style="border-top:4px solid {% if result.risk_level == 'HIGH' %}#EF4444{% elif result.risk_level == 'MEDIUM' %}#F59E0B{% elif result.risk_level == 'LOW' %}var(--p500){% else %}#10B981{% endif %}">
+            <div class="card-bd" style="text-align:center;padding:2rem 1.5rem">
+                <div style="font-family:'DM Serif Display',serif;font-size:3.5rem;line-height:1;color:{% if result.risk_level == 'HIGH' %}#DC2626{% elif result.risk_level == 'MEDIUM' %}#D97706{% elif result.risk_level == 'LOW' %}var(--p700){% else %}#059669{% endif %}">
+                    {{ (result.risk_score * 100)|round(1) }}%
+                </div>
+                <div style="margin-top:.75rem">
+                    <span class="rbadge rb-{{ result.risk_level }}" style="font-size:.8rem;padding:5px 16px">{{ result.risk_level }} RISK</span>
+                </div>
+                <div style="margin-top:.75rem;font-size:.8rem;color:var(--faint)">{{ result.conditions_met }} of 3 conditions flagged</div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+            <div class="card-hd"><i class="bi bi-list-check"></i>Condition Flags</div>
+            <div class="card-bd" style="display:flex;flex-direction:column;gap:.75rem">
+                <div style="display:flex;align-items:center;gap:10px">
+                    <i class="bi bi-{{ 'x-circle-fill' if result.cond_gpa else 'check-circle-fill' }}" style="color:{% if result.cond_gpa %}var(--red){% else %}var(--green){% endif %};font-size:1.1rem;flex-shrink:0"></i>
+                    <div>
+                        <div style="font-weight:600;font-size:.84rem">Academic (GPA)</div>
+                        <div style="font-size:.78rem;color:var(--muted)">GPA: {{ result.gpa }} &mdash; {{ 'Below threshold' if result.cond_gpa else 'Acceptable' }}</div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px">
+                    <i class="bi bi-{{ 'x-circle-fill' if result.cond_attendance else 'check-circle-fill' }}" style="color:{% if result.cond_attendance %}var(--red){% else %}var(--green){% endif %};font-size:1.1rem;flex-shrink:0"></i>
+                    <div>
+                        <div style="font-weight:600;font-size:.84rem">Attendance</div>
+                        <div style="font-size:.78rem;color:var(--muted)">{{ result.attendance_rate }}% &mdash; {{ 'High absenteeism' if result.cond_attendance else 'Acceptable' }}</div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px">
+                    <i class="bi bi-{{ 'x-circle-fill' if result.cond_mh else 'check-circle-fill' }}" style="color:{% if result.cond_mh %}var(--red){% else %}var(--green){% endif %};font-size:1.1rem;flex-shrink:0"></i>
+                    <div>
+                        <div style="font-weight:600;font-size:.84rem">Mental Health</div>
+                        <div style="font-size:.78rem;color:var(--muted)">Score: {{ result.mh_score }}/3 &mdash; {{ '2+ conditions present' if result.cond_mh else 'Within range' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Panel -->
+    <div class="col-md-8" style="display:flex;flex-direction:column;gap:12px">
+        <div class="card">
+            <div class="card-hd"><i class="bi bi-lightbulb"></i>Model Explanation</div>
+            <div class="card-bd" style="font-size:.88rem;line-height:1.7;color:var(--ink)">{{ result.explanation }}</div>
+        </div>
+
+        <div class="card">
+            <div class="card-hd"><i class="bi bi-database"></i>Data Used for Prediction</div>
+            <div class="card-bd">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <p style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--faint);margin-bottom:.6rem">Academic</p>
+                        <table class="table" style="font-size:.84rem">
+                            <tr><td style="color:var(--muted);padding:.45rem .5rem">GPA</td><td style="font-weight:500;padding:.45rem .5rem">{{ grade.gpa if grade else '—' }}</td></tr>
+                            <tr><td style="color:var(--muted);padding:.45rem .5rem">Grade Class</td><td style="font-weight:500;padding:.45rem .5rem">{{ grade.grade_class if grade else '—' }}</td></tr>
+                            <tr><td style="color:var(--muted);padding:.45rem .5rem">Study Time</td><td style="font-weight:500;padding:.45rem .5rem">{{ grade.study_time if grade else '—' }} hrs/wk</td></tr>
+                            <tr><td style="color:var(--muted);padding:.45rem .5rem">Absences</td><td style="font-weight:500;padding:.45rem .5rem">{{ grade.absences if grade else '—' }}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <p style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--faint);margin-bottom:.6rem">Mental Health</p>
+                        <table class="table" style="font-size:.84rem">
+                            {% if assessment %}
+                            <tr><td style="color:var(--muted);padding:.45rem .5rem">Depression</td><td style="padding:.45rem .5rem"><span class="sbadge {{ 'sb-incomplete' if assessment.depression else 'sb-active' }}">{{ 'Yes' if assessment.depression else 'No' }}</span></td></tr>
+                            <tr><td style="color:var(--muted);padding:.45rem .5rem">Anxiety</td><td style="padding:.45rem .5rem"><span class="sbadge {{ 'sb-incomplete' if assessment.anxiety else 'sb-active' }}">{{ 'Yes' if assessment.anxiety else 'No' }}</span></td></tr>
+                            <tr><td style="color:var(--muted);padding:.45rem .5rem">Panic Attack</td><td style="padding:.45rem .5rem"><span class="sbadge {{ 'sb-incomplete' if assessment.panic_attack else 'sb-active' }}">{{ 'Yes' if assessment.panic_attack else 'No' }}</span></td></tr>
+                            <tr><td style="color:var(--muted);padding:.45rem .5rem">Treatment</td><td style="padding:.45rem .5rem"><span class="sbadge {{ 'sb-active' if assessment.sought_treatment else 'sb-inactive' }}">{{ 'Yes' if assessment.sought_treatment else 'No' }}</span></td></tr>
+                            {% else %}
+                            <tr><td colspan="2" style="color:var(--faint);padding:.45rem .5rem">No assessment on record</td></tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:8px">
+            <a href="/counselor/assess/{{ student.id }}"      class="btn btn-outline"><i class="bi bi-arrow-repeat"></i>Re-assess</a>
+            <a href="/counselor/predict/run/{{ student.id }}" class="btn btn-primary"><i class="bi bi-play-fill"></i>Re-run Model</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

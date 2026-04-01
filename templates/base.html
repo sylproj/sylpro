@@ -1,0 +1,327 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SylPro{% endblock %} — Student Risk Detection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --p900: #1E1051; --p700: #4C2F9F; --p500: #6C47D4;
+            --p300: #A78BFA; --p100: #EDE9FE; --p50:  #F5F3FF;
+            --ink:  #18151F; --muted: #6B7280; --faint: #9CA3AF;
+            --bg:   #F8F7FC; --surface: #FFFFFF;
+            --border: #E5E7EB; --border2: #F0EEFB;
+            --red: #DC2626; --amber: #D97706; --green: #059669;
+            --r6: 6px; --r10: 10px; --r14: 14px;
+            --s1: 0 1px 3px rgba(0,0,0,.05),0 1px 2px rgba(0,0,0,.03);
+            --s2: 0 4px 20px rgba(108,71,212,.08),0 1px 4px rgba(0,0,0,.04);
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; }
+        html { font-size: 14px; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* NAV */
+        .topnav {
+            height: 56px; background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center;
+            padding: 0 1.75rem; gap: 1rem;
+            position: sticky; top: 0; z-index: 200;
+            box-shadow: var(--s1);
+        }
+        .brand {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.3rem; color: var(--p700);
+            text-decoration: none; letter-spacing: -.3px;
+            display: flex; align-items: center; gap: 7px;
+        }
+        .brand-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--p500); flex-shrink: 0;
+        }
+        .nav-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+        .nav-name  { font-size: .8rem; color: var(--muted); font-weight: 500; }
+        .chip {
+            font-size: .65rem; font-weight: 700; letter-spacing: .4px;
+            text-transform: uppercase; padding: 2px 9px; border-radius: 20px;
+        }
+        .chip-admin     { background: var(--p100); color: var(--p900); }
+        .chip-counselor { background: #EDE9FE; color: #5B21B6; }
+        .chip-lecturer  { background: #DBEAFE; color: #1D4ED8; }
+        .chip-student   { background: #D1FAE5; color: #065F46; }
+        .btn-signout {
+            font-size: .78rem; font-weight: 500; padding: 5px 13px;
+            border-radius: var(--r6); border: 1.5px solid var(--border);
+            background: transparent; color: var(--muted);
+            cursor: pointer; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 5px;
+            transition: all .15s;
+        }
+        .btn-signout:hover { border-color: var(--p300); color: var(--p700); background: var(--p50); }
+
+        /* LAYOUT */
+        .app-body { display: flex; flex: 1; }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 210px; min-width: 210px;
+            background: var(--surface); border-right: 1px solid var(--border);
+            padding: 1.25rem .625rem;
+            display: flex; flex-direction: column; gap: 1px;
+        }
+        .sidebar-label {
+            font-size: .62rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--faint);
+            padding: .6rem .75rem .3rem; margin-top: .5rem;
+        }
+        .slink {
+            display: flex; align-items: center; gap: 8px;
+            padding: 7px 11px; border-radius: var(--r6);
+            color: var(--muted); text-decoration: none;
+            font-size: .84rem; font-weight: 500; transition: all .12s;
+        }
+        .slink i { font-size: .95rem; width: 17px; text-align: center; opacity: .65; }
+        .slink:hover { background: var(--p50); color: var(--p700); }
+        .slink:hover i { opacity: 1; }
+        .slink.active { background: var(--p100); color: var(--p700); font-weight: 600; }
+        .slink.active i { opacity: 1; }
+
+        /* MAIN */
+        .main { flex: 1; padding: 2rem 2.25rem; animation: fadeUp .2s ease; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* PAGE HEADER */
+        .ph { margin-bottom: 1.75rem; }
+        .ph-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.5rem; letter-spacing: -.3px; color: var(--ink);
+        }
+        .ph-sub { font-size: .8rem; color: var(--muted); margin-top: 2px; }
+        .ph-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem; }
+
+        /* CARDS */
+        .card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--r14); box-shadow: var(--s1); overflow: hidden;
+        }
+        .card-hd {
+            padding: .9rem 1.2rem; border-bottom: 1px solid var(--border2);
+            font-weight: 600; font-size: .84rem; color: var(--ink);
+            display: flex; align-items: center; gap: 7px; background: var(--surface);
+        }
+        .card-hd i { color: var(--p500); font-size: .95rem; }
+        .card-hd .ms-auto { margin-left: auto; }
+        .card-bd { padding: 1.2rem; }
+        .card-bd-0 { padding: 0; }
+
+        /* STAT CARDS */
+        .scard {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--r14); padding: 1.1rem 1.3rem;
+            box-shadow: var(--s1); transition: box-shadow .18s, transform .18s;
+        }
+        .scard:hover { box-shadow: var(--s2); transform: translateY(-1px); }
+        .scard-label {
+            font-size: .67rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .8px; color: var(--faint); margin-bottom: 6px;
+        }
+        .scard-val {
+            font-family: 'DM Serif Display', serif;
+            font-size: 2rem; line-height: 1; color: var(--ink);
+        }
+        .scard-accent  { color: var(--p500); }
+        .scard-red     { color: var(--red); }
+        .scard-amber   { color: var(--amber); }
+        .scard-green   { color: var(--green); }
+        .scard-accent-border { border-left: 3px solid var(--p500); }
+        .scard-red-border    { border-left: 3px solid var(--red); }
+        .scard-amber-border  { border-left: 3px solid var(--amber); }
+        .scard-green-border  { border-left: 3px solid var(--green); }
+
+        /* BUTTONS */
+        .btn {
+            font-family: 'DM Sans', sans-serif; font-weight: 500;
+            font-size: .8rem; border-radius: var(--r6);
+            padding: 7px 15px; border: 1.5px solid transparent;
+            display: inline-flex; align-items: center; gap: 5px;
+            cursor: pointer; text-decoration: none; line-height: 1.4;
+            transition: all .14s; white-space: nowrap;
+        }
+        .btn-primary { background: var(--p700); color: #fff; border-color: var(--p700); }
+        .btn-primary:hover { background: var(--p900); border-color: var(--p900); color: #fff; }
+        .btn-outline { background: var(--surface); color: var(--muted); border-color: var(--border); }
+        .btn-outline:hover { border-color: var(--p300); color: var(--p700); background: var(--p50); }
+        .btn-green  { background: #ECFDF5; color: var(--green); border-color: #A7F3D0; }
+        .btn-green:hover  { background: #D1FAE5; color: #047857; }
+        .btn-red    { background: #FEF2F2; color: var(--red);   border-color: #FECACA; }
+        .btn-red:hover    { background: #FEE2E2; color: #B91C1C; }
+        .btn-amber  { background: #FFFBEB; color: var(--amber); border-color: #FDE68A; }
+        .btn-amber:hover  { background: #FEF3C7; color: #92400E; }
+        .btn-sm  { font-size: .74rem; padding: 4px 10px; }
+        .btn-icon { padding: 5px 8px; }
+
+        /* TABLE */
+        .table { margin: 0; font-size: .84rem; width: 100%; border-collapse: collapse; }
+        .table thead th {
+            font-size: .65rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .7px; color: var(--faint);
+            padding: .7rem 1.1rem; background: var(--bg);
+            border-bottom: 1px solid var(--border2); white-space: nowrap;
+        }
+        .table tbody td {
+            padding: .78rem 1.1rem; border-bottom: 1px solid var(--border2);
+            vertical-align: middle; color: var(--ink);
+        }
+        .table tbody tr:last-child td { border-bottom: none; }
+        .table tbody tr:hover td { background: var(--p50); }
+
+        /* BADGES */
+        .rbadge {
+            font-size: .67rem; font-weight: 700; letter-spacing: .4px;
+            text-transform: uppercase; padding: 3px 9px; border-radius: 20px;
+            display: inline-block;
+        }
+        .rb-HIGH    { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
+        .rb-MEDIUM  { background: #FFFBEB; color: #92400E; border: 1px solid #FDE68A; }
+        .rb-LOW     { background: var(--p50); color: var(--p700); border: 1px solid var(--p100); }
+        .rb-MINIMAL { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; }
+
+        .sbadge { font-size: .67rem; font-weight: 600; padding: 3px 9px; border-radius: 20px; display: inline-block; }
+        .sb-ready    { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; }
+        .sb-partial  { background: #FFFBEB; color: #92400E; border: 1px solid #FDE68A; }
+        .sb-incomplete { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
+        .sb-active   { background: #ECFDF5; color: #065F46; }
+        .sb-inactive { background: var(--bg); color: var(--faint); }
+
+        .rolebadge { font-size: .67rem; font-weight: 600; padding: 3px 9px; border-radius: 20px; display: inline-block; text-transform: capitalize; }
+        .rb-admin     { background: var(--p100); color: var(--p900); }
+        .rb-counselor { background: #EDE9FE; color: #5B21B6; }
+        .rb-lecturer  { background: #DBEAFE; color: #1D4ED8; }
+        .rb-student   { background: #D1FAE5; color: #065F46; }
+
+        /* ALERTS */
+        .flash-wrap { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.5rem; }
+        .flash {
+            border-radius: var(--r10); border: 1px solid; padding: .78rem 1rem;
+            font-size: .84rem; display: flex; align-items: center; gap: 9px;
+        }
+        .flash-success { background: #ECFDF5; border-color: #A7F3D0; color: #065F46; }
+        .flash-danger  { background: #FEF2F2; border-color: #FECACA; color: #B91C1C; }
+        .flash-warning { background: #FFFBEB; border-color: #FDE68A; color: #92400E; }
+        .flash-info    { background: var(--p50); border-color: var(--p100); color: var(--p700); }
+        .flash .ms-auto { margin-left: auto; }
+        .flash .btn-close { opacity: .5; font-size: .7rem; }
+
+        /* FORMS */
+        .form-label { font-size: .76rem; font-weight: 600; color: var(--ink); margin-bottom: 4px; display: block; }
+        .form-control, .form-select {
+            font-family: 'DM Sans', sans-serif; font-size: .84rem;
+            border: 1.5px solid var(--border); border-radius: var(--r6);
+            padding: 7px 11px; color: var(--ink); background: var(--surface);
+            width: 100%; transition: border-color .14s, box-shadow .14s;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--p500); outline: none;
+            box-shadow: 0 0 0 3px rgba(108,71,212,.1);
+        }
+        .form-hint { font-size: .73rem; color: var(--faint); margin-top: 3px; }
+        .form-check-input:checked { background-color: var(--p500); border-color: var(--p500); }
+        .input-group-text {
+            background: var(--bg); border: 1.5px solid var(--border);
+            border-radius: var(--r6); padding: 7px 10px; color: var(--muted);
+        }
+
+        /* RISK BAR */
+        .rbar { height: 4px; background: var(--border2); border-radius: 2px; width: 72px; overflow: hidden; margin-top: 3px; }
+        .rbar-fill { height: 100%; border-radius: 2px; }
+        .rf-HIGH    { background: #EF4444; }
+        .rf-MEDIUM  { background: #F59E0B; }
+        .rf-LOW     { background: var(--p500); }
+        .rf-MINIMAL { background: #10B981; }
+
+        /* MISC */
+        .divider { border: none; border-top: 1px solid var(--border2); margin: 1rem 0; }
+        .empty { text-align: center; padding: 2.5rem 1rem; color: var(--faint); }
+        .empty i { font-size: 2.2rem; display: block; margin-bottom: .6rem; opacity: .35; }
+        .empty p { font-size: .84rem; }
+        footer { text-align: center; font-size: .73rem; color: var(--faint); padding: 1.25rem; border-top: 1px solid var(--border2); }
+
+        /* Condition flag icons */
+        .cond-flag { display: inline-flex; align-items: center; gap: 5px; font-size: .78rem; }
+        .cond-yes { color: var(--red); }
+        .cond-no  { color: var(--green); }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<nav class="topnav">
+    <a href="{{ url_for('dashboard') }}" class="brand">
+        <span class="brand-dot"></span>SylPro
+    </a>
+    {% if session.user_id %}
+    <div class="nav-right">
+        <span class="nav-name">{{ session.name }}</span>
+        <span class="chip chip-{{ session.role }}">{{ session.role }}</span>
+        <a href="{{ url_for('logout') }}" class="btn-signout">
+            <i class="bi bi-box-arrow-right"></i>Sign out
+        </a>
+    </div>
+    {% endif %}
+</nav>
+
+<div class="app-body">
+    {% if session.user_id %}
+    <aside class="sidebar d-none d-md-flex flex-column">
+        <span class="sidebar-label">Menu</span>
+        {% if session.role == 'admin' %}
+            <a href="{{ url_for('admin_dashboard') }}" class="slink {% if request.endpoint=='admin_dashboard' %}active{% endif %}"><i class="bi bi-grid-1x2"></i>Overview</a>
+            <a href="{{ url_for('admin_users') }}"     class="slink {% if request.endpoint in ['admin_users','admin_add_user'] %}active{% endif %}"><i class="bi bi-people"></i>Users</a>
+            <a href="{{ url_for('admin_students') }}"  class="slink {% if request.endpoint=='admin_students' %}active{% endif %}"><i class="bi bi-person-badge"></i>Students</a>
+            <a href="{{ url_for('admin_upload') }}"    class="slink {% if request.endpoint=='admin_upload' %}active{% endif %}"><i class="bi bi-cloud-upload"></i>Upload Data</a>
+        {% elif session.role == 'counselor' %}
+            <a href="{{ url_for('counselor_dashboard') }}" class="slink {% if request.endpoint=='counselor_dashboard' %}active{% endif %}"><i class="bi bi-grid-1x2"></i>Overview</a>
+            <a href="{{ url_for('counselor_results') }}"   class="slink {% if request.endpoint=='counselor_results' %}active{% endif %}"><i class="bi bi-bar-chart-line"></i>Risk Results</a>
+            <a href="{{ url_for('counselor_download') }}"  class="slink"><i class="bi bi-download"></i>Download Report</a>
+        {% elif session.role == 'lecturer' %}
+            <a href="{{ url_for('lecturer_dashboard') }}"  class="slink {% if request.endpoint=='lecturer_dashboard' %}active{% endif %}"><i class="bi bi-grid-1x2"></i>Overview</a>
+            <a href="{{ url_for('lecturer_attendance') }}" class="slink {% if request.endpoint=='lecturer_attendance' %}active{% endif %}"><i class="bi bi-calendar-check"></i>Attendance</a>
+            <a href="{{ url_for('lecturer_grades') }}"     class="slink {% if request.endpoint=='lecturer_grades' %}active{% endif %}"><i class="bi bi-journal-text"></i>Grades</a>
+            <a href="{{ url_for('lecturer_class_risk') }}" class="slink {% if request.endpoint=='lecturer_class_risk' %}active{% endif %}"><i class="bi bi-shield-exclamation"></i>Class Risk</a>
+        {% elif session.role == 'student' %}
+            <a href="{{ url_for('student_dashboard') }}"  class="slink {% if request.endpoint=='student_dashboard' %}active{% endif %}"><i class="bi bi-house"></i>Dashboard</a>
+            <a href="{{ url_for('student_attendance') }}" class="slink {% if request.endpoint=='student_attendance' %}active{% endif %}"><i class="bi bi-calendar3"></i>My Attendance</a>
+        {% endif %}
+    </aside>
+    {% endif %}
+
+    <main class="main">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+          <div class="flash-wrap">
+            {% for category, message in messages %}
+            <div class="flash flash-{{ category }} alert-dismissible">
+                <i class="bi bi-{{ 'check-circle-fill' if category=='success' else 'exclamation-triangle-fill' if category=='warning' else 'x-circle-fill' if category=='danger' else 'info-circle-fill' }}"></i>
+                <span>{{ message }}</span>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+</div>

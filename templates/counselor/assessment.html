@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}MH Assessment{% endblock %}
+{% block content %}
+
+<div class="ph">
+    <div class="ph-row">
+        <div>
+            <h1 class="ph-title">Mental Health Assessment</h1>
+            <p class="ph-sub">{{ student.name }} &bull; {{ student.student_no }} &bull; {{ student.course or '' }} {% if student.year %}Year {{ student.year }}{% endif %}</p>
+        </div>
+        <a href="/counselor" class="btn btn-outline"><i class="bi bi-arrow-left"></i>Back</a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+<div class="col-md-8">
+
+{% if latest %}
+<div style="background:var(--p50);border:1px solid var(--p100);border-radius:10px;padding:.85rem 1rem;margin-bottom:1.25rem;font-size:.84rem;color:var(--p700);display:flex;gap:9px">
+    <i class="bi bi-info-circle-fill" style="flex-shrink:0;margin-top:1px"></i>
+    <span><strong>Previous assessment ({{ latest.date[:10] }}):</strong>
+    Depression: {{ 'Yes' if latest.depression else 'No' }} &bull;
+    Anxiety: {{ 'Yes' if latest.anxiety else 'No' }} &bull;
+    Panic Attack: {{ 'Yes' if latest.panic_attack else 'No' }}</span>
+</div>
+{% endif %}
+
+{% if not grade %}
+<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:.85rem 1rem;margin-bottom:1.25rem;font-size:.84rem;color:#92400E;display:flex;gap:9px">
+    <i class="bi bi-exclamation-triangle-fill" style="flex-shrink:0;margin-top:1px"></i>
+    <span>No grade record found for this student. The model will run automatically once grades are added.</span>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-hd"><i class="bi bi-heart-pulse"></i>Conditions Assessment</div>
+    <div class="card-bd">
+        <form method="POST">
+            <div class="row g-3 mb-4">
+                {% for cond_name, field_name, emoji in [('Depression','depression','😔'),('Anxiety','anxiety','😰'),('Panic Attack','panic_attack','😱')] %}
+                <div class="col-md-4">
+                    <div style="background:var(--bg);border:1px solid var(--border2);border-radius:10px;padding:1.1rem;text-align:center">
+                        <div style="font-size:2rem;margin-bottom:.4rem">{{ emoji }}</div>
+                        <div style="font-weight:600;font-size:.88rem;margin-bottom:.75rem">{{ cond_name }}</div>
+                        <div style="display:flex;justify-content:center;gap:1rem">
+                            <label style="display:flex;align-items:center;gap:5px;font-size:.82rem;cursor:pointer">
+                                <input type="radio" name="{{ field_name }}" value="1" style="accent-color:var(--p500)"> Yes
+                            </label>
+                            <label style="display:flex;align-items:center;gap:5px;font-size:.82rem;cursor:pointer">
+                                <input type="radio" name="{{ field_name }}" value="0" checked style="accent-color:var(--p500)"> No
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div style="margin-bottom:1rem">
+                <label class="form-label">Has the student sought specialist treatment?</label>
+                <div style="display:flex;gap:1.5rem;margin-top:.4rem">
+                    <label style="display:flex;align-items:center;gap:6px;font-size:.84rem;cursor:pointer"><input type="radio" name="sought_treatment" value="1" style="accent-color:var(--p500)"> Yes</label>
+                    <label style="display:flex;align-items:center;gap:6px;font-size:.84rem;cursor:pointer"><input type="radio" name="sought_treatment" value="0" checked style="accent-color:var(--p500)"> No</label>
+                </div>
+            </div>
+
+            <div style="margin-bottom:1.25rem">
+                <label class="form-label">Counselor Notes <span style="color:var(--faint);font-weight:400">(confidential)</span></label>
+                <textarea name="notes" class="form-control" rows="3" placeholder="Observations, context, follow-up actions..."></textarea>
+            </div>
+
+            <div style="display:flex;gap:8px">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i>Save &amp; Run Risk Model</button>
+                <a href="/counselor" class="btn btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+</div>
+</div>
+{% endblock %}

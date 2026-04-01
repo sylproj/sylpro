@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Admin Overview{% endblock %}
+{% block content %}
+
+<div class="ph">
+    <div class="ph-row">
+        <div>
+            <h1 class="ph-title">Overview</h1>
+            <p class="ph-sub">System health and user management at a glance</p>
+        </div>
+        <div style="display:flex;gap:8px">
+            <a href="{{ url_for('admin_add_user') }}" class="btn btn-primary"><i class="bi bi-plus"></i>Add User</a>
+            <a href="{{ url_for('admin_upload') }}"   class="btn btn-outline"><i class="bi bi-upload"></i>Upload Data</a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3"><div class="scard scard-accent-border"><div class="scard-label">Total Users</div><div class="scard-val scard-accent">{{ stats.total_users }}</div></div></div>
+    <div class="col-6 col-md-3"><div class="scard"><div class="scard-label">Students</div><div class="scard-val">{{ stats.total_students }}</div></div></div>
+    <div class="col-6 col-md-3"><div class="scard"><div class="scard-label">Students Scored</div><div class="scard-val">{{ stats.total_scored }}</div></div></div>
+    <div class="col-6 col-md-3"><div class="scard scard-red-border"><div class="scard-label">High Risk</div><div class="scard-val scard-red">{{ stats.high_risk }}</div></div></div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-hd">
+                <i class="bi bi-people"></i>System Users
+                <a href="{{ url_for('admin_users') }}" class="btn btn-sm btn-outline ms-auto">View all</a>
+            </div>
+            <div class="card-bd-0">
+                <table class="table">
+                    <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th></th></tr></thead>
+                    <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td><span style="font-weight:500">{{ u.name }}</span></td>
+                        <td style="color:var(--muted)">{{ u.email }}</td>
+                        <td><span class="rolebadge rb-{{ u.role }}">{{ u.role }}</span></td>
+                        <td><span class="sbadge {{ 'sb-active' if u.is_active else 'sb-inactive' }}">{{ 'Active' if u.is_active else 'Inactive' }}</span></td>
+                        <td><a href="{{ url_for('admin_toggle_user', user_id=u.id) }}" class="btn btn-sm btn-outline">{{ 'Disable' if u.is_active else 'Enable' }}</a></td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4" style="display:flex;flex-direction:column;gap:12px">
+        <div class="card">
+            <div class="card-hd"><i class="bi bi-clock-history"></i>Recent Uploads</div>
+            <div class="card-bd-0">
+                {% if recent_uploads %}
+                <div style="display:flex;flex-direction:column">
+                {% for up in recent_uploads %}
+                <div style="padding:.7rem 1.1rem;border-bottom:1px solid var(--border2);display:flex;justify-content:space-between;align-items:center">
+                    <div>
+                        <div style="font-weight:500;font-size:.82rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ up.filename }}</div>
+                        <div style="font-size:.75rem;color:var(--faint)">{{ up.uploader }} &bull; {{ up.rows_processed }} rows</div>
+                    </div>
+                    <span class="sbadge {{ 'sb-active' if up.status == 'success' else 'sb-incomplete' }}">{{ up.status }}</span>
+                </div>
+                {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty"><i class="bi bi-inbox"></i><p>No uploads yet</p></div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-hd"><i class="bi bi-lightning"></i>Quick Actions</div>
+            <div class="card-bd" style="display:flex;flex-direction:column;gap:8px">
+                <a href="{{ url_for('admin_upload') }}"   class="btn btn-outline" style="justify-content:center"><i class="bi bi-upload"></i>Upload CSV Data</a>
+                <a href="{{ url_for('admin_users') }}"    class="btn btn-outline" style="justify-content:center"><i class="bi bi-people"></i>Manage Users</a>
+                <a href="{{ url_for('admin_students') }}" class="btn btn-outline" style="justify-content:center"><i class="bi bi-person-badge"></i>View Students</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}My Attendance{% endblock %}
+{% block content %}
+
+<div class="ph">
+    <div class="ph-row">
+        <div>
+            <h1 class="ph-title">My Attendance</h1>
+            <p class="ph-sub">Full session history</p>
+        </div>
+        <a href="{{ url_for('student_dashboard') }}" class="btn btn-outline"><i class="bi bi-arrow-left"></i>Back</a>
+    </div>
+</div>
+
+{% set total    = summary.total_sessions if summary else 0 %}
+{% set attended = summary.attended       if summary else 0 %}
+{% set absences = summary.absences       if summary else 0 %}
+{% set rate     = summary.attendance_rate if summary and summary.attendance_rate is not none else none %}
+
+{% if total > 0 %}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="scard"><div class="scard-label">Total Sessions</div><div class="scard-val">{{ total }}</div></div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="scard scard-green-border"><div class="scard-label">Attended</div><div class="scard-val scard-green">{{ attended }}</div></div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="scard scard-red-border"><div class="scard-label">Missed</div><div class="scard-val scard-red">{{ absences }}</div></div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="scard {% if rate >= 75 %}scard-green-border{% elif rate >= 60 %}scard-amber-border{% else %}scard-red-border{% endif %}">
+            <div class="scard-label">Attendance Rate</div>
+            <div class="scard-val {% if rate >= 75 %}scard-green{% elif rate >= 60 %}scard-amber{% else %}scard-red{% endif %}">{{ rate }}%</div>
+        </div>
+    </div>
+</div>
+
+{% if rate < 75 %}
+<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:.85rem 1rem;margin-bottom:1.25rem;font-size:.84rem;color:#92400E;display:flex;gap:9px">
+    <i class="bi bi-exclamation-triangle-fill" style="flex-shrink:0;margin-top:1px"></i>
+    <span>Your attendance rate of <strong>{{ rate }}%</strong> is below the required 75%. You have missed {{ absences }} out of {{ total }} sessions.</span>
+</div>
+{% endif %}
+
+{% else %}
+<div style="background:var(--p50);border:1px solid var(--p100);border-radius:10px;padding:.85rem 1rem;margin-bottom:1.25rem;font-size:.84rem;color:var(--p700);display:flex;gap:9px">
+    <i class="bi bi-info-circle-fill" style="flex-shrink:0;margin-top:1px"></i>
+    <span>No attendance has been recorded for you yet. Records will appear here once your lecturer begins marking sessions.</span>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-hd">
+        <i class="bi bi-list-check"></i>Session History
+        {% if records %}
+        <span style="margin-left:8px;font-size:.75rem;color:var(--faint);font-weight:400">{{ records|length }} sessions</span>
+        {% endif %}
+    </div>
+    <div class="card-bd-0">
+        <table class="table">
+            <thead><tr><th>Date</th><th>Session</th><th>Lecturer</th><th>Status</th></tr></thead>
+            <tbody>
+            {% for r in records %}
+            <tr>
+                <td style="font-weight:500">{{ r.date }}</td>
+                <td style="color:var(--muted)">{{ r.session or 'Lecture' }}</td>
+                <td style="color:var(--muted);font-size:.82rem">{{ r.lecturer_name }}</td>
+                <td>
+                    {% if r.present %}
+                    <span class="sbadge sb-active"><i class="bi bi-check-lg"></i> Present</span>
+                    {% else %}
+                    <span class="sbadge sb-incomplete"><i class="bi bi-x-lg"></i> Absent</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4"><div class="empty"><i class="bi bi-calendar3"></i><p>No sessions recorded yet.</p></div></td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

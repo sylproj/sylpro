@@ -1,0 +1,33 @@
+{
+  "best_model": "Random Forest",
+  "test_auc": 1.0,
+  "cv_auc": 0.9999,
+  "feature_cols": [
+    "MHScore",
+    "AttendanceRate",
+    "GPA",
+    "Depression",
+    "Anxiety",
+    "PanicAttack",
+    "SoughtTreatment",
+    "Absences",
+    "GradeClass",
+    "StudyTimeWeekly",
+    "StudyEfficiency",
+    "MH_x_Absences",
+    "MH_x_GPA",
+    "Absences_x_StudyTime",
+    "GPA_x_StudyTime",
+    "SupportScore",
+    "ActivityScore",
+    "ParentalEducation",
+    "Tutoring",
+    "Age",
+    "Gender"
+  ],
+  "label_thresholds": {
+    "gpa": 1.5,
+    "absences_p75": 22.0,
+    "mh_score": 2
+  }
+}

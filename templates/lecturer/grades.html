@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% block title %}Grades{% endblock %}
+{% block content %}
+
+<div class="ph">
+    <div class="ph-row">
+        <div>
+            <h1 class="ph-title">Grades</h1>
+            <p class="ph-sub">Upload CSV or update a student's grade manually. Grade class is calculated automatically from GPA.</p>
+        </div>
+        <a href="{{ url_for('lecturer_dashboard') }}" class="btn btn-outline"><i class="bi bi-arrow-left"></i>Back</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <!-- CSV Upload -->
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-hd"><i class="bi bi-file-earmark-spreadsheet"></i>Upload CSV</div>
+            <div class="card-bd">
+                <form method="POST" enctype="multipart/form-data">
+                    <div style="margin-bottom:1rem">
+                        <label class="form-label">Select CSV file</label>
+                        <input type="file" name="file" class="form-control" accept=".csv">
+                        <p class="form-hint">Required columns: student_no, gpa, absences</p>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-upload"></i>Upload &amp; Update Grades</button>
+                </form>
+                <hr class="divider">
+                <div style="font-size:.78rem;color:var(--muted)">
+                    <strong>Grade class is auto-calculated:</strong><br>
+                    <ul class="gpa-scale">
+                        <li>A = GPA 3.5+</li>
+                        <li>B = 3.0–3.49</li>
+                        <li>C = 2.5–2.99</li>
+                        <li>D = 2.0–2.49</li>
+                        <li style="color:var(--red)">F = below 2.0 (failing)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Entry -->
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-hd"><i class="bi bi-pencil-square"></i>Manual Entry / Update</div>
+            <div class="card-bd">
+                <form method="POST" id="gradeForm">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Student</label>
+                            <select name="student_id" class="form-select" required onchange="loadCurrentGrade(this)">
+                                <option value="">Select a student…</option>
+                                {% for s in students %}
+                                <option value="{{ s.id }}"
+                                    data-gpa="{{ grade_map[s.id].gpa if s.id in grade_map else '' }}"
+                                    data-absences="{{ grade_map[s.id].absences if s.id in grade_map else '' }}">
+                                    {{ s.name }} ({{ s.student_no }})
+                                    {% if s.id in grade_map %} — GPA: {{ grade_map[s.id].gpa }}{% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Current grade preview -->
+                        <div class="col-12" id="currentGradeInfo" style="display:none">
+                            <div style="background:var(--p50);border:1px solid var(--p100);border-radius:8px;padding:.7rem .9rem;font-size:.82rem;color:var(--p700)">
+                                <i class="bi bi-info-circle me-1"></i>
+                                <span id="currentGradeText">Current grade on record — fields pre-filled. Saving will update the existing record.</span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">GPA <span style="color:var(--faint);font-weight:400">(0.00 – 4.00)</span></label>
+                            <input type="number" name="gpa" id="gpaInput" class="form-control"
+                                   step="0.01" min="0" max="4" placeholder="e.g. 2.75"
+                                   oninput="updateGradePreview(this.value)">
+                            <!-- Failing threshold warning -->
+                            <div id="failingWarn" style="display:none;margin-top:4px;font-size:.76rem;color:var(--red);font-weight:500">
+                                <i class="bi bi-exclamation-triangle-fill"></i> Below failing threshold (2.0)
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Grade Class <span style="color:var(--faint);font-weight:400">(auto)</span></label>
+                            <div id="gradeClassDisplay"
+                                 style="padding:7px 11px;background:var(--bg);border:1.5px solid var(--border);border-radius:6px;font-size:.84rem;color:var(--faint)">
+                                Enter GPA to calculate
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Absences</label>
+                            <input type="number" name="absences" id="absInput" class="form-control" min="0" placeholder="0">
+                        </div>
+
+                        <div class="col-12" style="display:flex;gap:8px;margin-top:.25rem">
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i>Save / Update Grade</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Current Grades Table -->
+<div class="card">
+    <div class="card-hd">
+        <i class="bi bi-table"></i>Current Grade Records
+        <div class="ms-auto" style="width:220px">
+            <input type="text" id="gradeSearch" class="form-control"
+                   placeholder="Search student…" oninput="filterGrades()"
+                   style="font-size:.8rem;padding:5px 10px">
+        </div>
+    </div>
+    <div class="card-bd-0">
+        <table class="table" id="gradesTable">
+            <thead>
+                <tr><th>Name</th><th>Student No.</th><th>GPA</th><th>Grade</th><th>Absences</th><th>Last Updated</th></tr>
+            </thead>
+            <tbody>
+            {% for s in students %}
+            {% if s.id in grade_map %}
+            {% set g = grade_map[s.id] %}
+            <tr class="grade-row">
+                <td style="font-weight:500">{{ s.name }}</td>
+                <td style="color:var(--muted);font-size:.82rem">{{ s.student_no }}</td>
+                <td>
+                    <span style="font-weight:700;color:{% if g.gpa >= 3.0 %}var(--green){% elif g.gpa >= 2.0 %}var(--amber){% else %}var(--red){% endif %}">
+                        {{ g.gpa }}
+                    </span>
+                    {% if g.gpa < 2.0 %}
+                    <span style="font-size:.68rem;color:var(--red);margin-left:4px"><i class="bi bi-exclamation-triangle-fill"></i> Failing</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% set gc_labels = {0:'A',1:'B',2:'C',3:'D',4:'F'} %}
+                    <span class="sbadge {{ 'sb-active' if g.grade_class < 3 else 'sb-incomplete' }}">
+                        {{ gc_labels[g.grade_class] if g.grade_class in gc_labels else '?' }}
+                    </span>
+                </td>
+                <td style="font-weight:500">{{ g.absences }}</td>
+                <td style="color:var(--faint);font-size:.78rem">{{ g.uploaded_at[:16] if g.uploaded_at else '—' }}</td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+            {% if not grade_map %}
+            <tr><td colspan="6"><div class="empty"><i class="bi bi-journal"></i><p>No grade records yet.</p></div></td></tr>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+{% block extra_scripts %}
+<script>
+const gradeLabels = {
+    'A': {min: 3.5, label: 'A — Excellent',  color: 'var(--green)'},
+    'B': {min: 3.0, label: 'B — Good',        color: 'var(--green)'},
+    'C': {min: 2.5, label: 'C — Average',     color: 'var(--amber)'},
+    'D': {min: 2.0, label: 'D — Below Avg',   color: 'var(--amber)'},
+    'F': {min: 0,   label: 'F — Failing',     color: 'var(--red)'},
+};
+
+function updateGradePreview(gpa) {
+    gpa = parseFloat(gpa);
+    const el   = document.getElementById('gradeClassDisplay');
+    const warn = document.getElementById('failingWarn');
+    if (isNaN(gpa) || gpa < 0) {
+        el.textContent = 'Enter GPA to calculate';
+        el.style.color = 'var(--faint)';
+        warn.style.display = 'none';
+        return;
+    }
+    let grade, color;
+    if      (gpa >= 3.5) { grade = 'A — Excellent';  color = 'var(--green)'; }
+    else if (gpa >= 3.0) { grade = 'B — Good';        color = 'var(--green)'; }
+    else if (gpa >= 2.5) { grade = 'C — Average';     color = 'var(--amber)'; }
+    else if (gpa >= 2.0) { grade = 'D — Below Avg';   color = 'var(--amber)'; }
+    else                 { grade = 'F — Failing';      color = 'var(--red)'; }
+    el.textContent  = grade;
+    el.style.color  = color;
+    el.style.fontWeight = '600';
+    warn.style.display = gpa < 2.0 ? 'block' : 'none';
+}
+
+function loadCurrentGrade(sel) {
+    const opt      = sel.options[sel.selectedIndex];
+    const gpa      = opt.getAttribute('data-gpa');
+    const absences = opt.getAttribute('data-absences');
+    const info     = document.getElementById('currentGradeInfo');
+    const gpaInput = document.getElementById('gpaInput');
+    const absInput = document.getElementById('absInput');
+
+    if (gpa) {
+        gpaInput.value = gpa;
+        absInput.value = absences || 0;
+        updateGradePreview(gpa);
+        info.style.display = 'block';
+    } else {
+        gpaInput.value = '';
+        absInput.value = '';
+        updateGradePreview('');
+        info.style.display = 'none';
+    }
+}
+
+function filterGrades() {
+    const q = document.getElementById('gradeSearch').value.toLowerCase();
+    document.querySelectorAll('#gradesTable .grade-row').forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}

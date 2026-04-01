@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SylPro — Sign In</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #F5F3FF;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Left panel */
+        .left-panel {
+            width: 44%;
+            background: #4C2F9F;
+            background-image:
+                radial-gradient(ellipse at 20% 80%, rgba(108,71,212,.5) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(167,139,250,.25) 0%, transparent 50%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 3.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .left-panel::before {
+            content: '';
+            position: absolute;
+            width: 320px; height: 320px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.04);
+            bottom: -80px; right: -80px;
+        }
+        .left-panel::after {
+            content: '';
+            position: absolute;
+            width: 180px; height: 180px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.06);
+            top: 40px; right: 60px;
+        }
+        .brand-mark {
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 3rem;
+        }
+        .brand-dot {
+            width: 9px; height: 9px; border-radius: 50%;
+            background: #A78BFA;
+        }
+        .brand-name {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.4rem; color: #fff; letter-spacing: -.2px;
+        }
+        .left-headline {
+            font-family: 'DM Serif Display', serif;
+            font-size: 2.2rem; color: #fff;
+            line-height: 1.2; letter-spacing: -.5px;
+            margin-bottom: 1rem;
+        }
+        .left-sub {
+            font-size: .88rem; color: rgba(255,255,255,.65);
+            line-height: 1.65; max-width: 320px;
+        }
+        .left-features {
+            margin-top: 2.5rem;
+            display: flex; flex-direction: column; gap: .6rem;
+        }
+        .left-feat {
+            display: flex; align-items: center; gap: 9px;
+            font-size: .82rem; color: rgba(255,255,255,.75);
+        }
+        .left-feat i { color: #A78BFA; font-size: .9rem; }
+
+        /* Right panel */
+        .right-panel {
+            flex: 1;
+            display: flex; align-items: center; justify-content: center;
+            padding: 2rem;
+        }
+        .login-box {
+            width: 100%; max-width: 380px;
+        }
+        .login-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.6rem; color: #18151F;
+            letter-spacing: -.3px; margin-bottom: 4px;
+        }
+        .login-sub { font-size: .82rem; color: #6B7280; margin-bottom: 2rem; }
+
+        .flash-alert {
+            border-radius: 8px; border: 1px solid;
+            padding: .7rem .9rem; font-size: .82rem;
+            margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;
+        }
+        .flash-danger  { background: #FEF2F2; border-color: #FECACA; color: #B91C1C; }
+        .flash-info    { background: #F5F3FF; border-color: #EDE9FE; color: #5B21B6; }
+
+        .field-group { margin-bottom: 1rem; }
+        .field-label { font-size: .76rem; font-weight: 600; color: #18151F; margin-bottom: 5px; display: block; }
+        .field-input-wrap { position: relative; }
+        .field-icon {
+            position: absolute; left: 11px; top: 50%;
+            transform: translateY(-50%); color: #9CA3AF; font-size: .9rem;
+        }
+        .field-input {
+            width: 100%; padding: 9px 11px 9px 34px;
+            border: 1.5px solid #E5E7EB; border-radius: 7px;
+            font-family: 'DM Sans', sans-serif; font-size: .86rem;
+            color: #18151F; background: #fff;
+            transition: border-color .15s, box-shadow .15s;
+        }
+        .field-input:focus {
+            outline: none; border-color: #6C47D4;
+            box-shadow: 0 0 0 3px rgba(108,71,212,.1);
+        }
+
+        .btn-login {
+            width: 100%; padding: 10px;
+            background: #4C2F9F; color: #fff;
+            border: none; border-radius: 7px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .88rem; font-weight: 600;
+            cursor: pointer; transition: background .15s;
+            display: flex; align-items: center; justify-content: center; gap: 7px;
+            margin-top: 1.25rem;
+        }
+        .btn-login:hover { background: #1E1051; }
+
+    </style>
+</head>
+<body>
+
+<div class="left-panel">
+    <div class="brand-mark">
+        <span class="brand-dot"></span>
+        <span class="brand-name">SylPro</span>
+    </div>
+    <h1 class="left-headline">Student Risk<br>Detection System</h1>
+    <p class="left-sub">A unified platform for identifying students at risk of dropout using academic, attendance, and mental health data.</p>
+    <div class="left-features">
+        <div class="left-feat"><i class="bi bi-shield-check"></i>ML-powered dropout risk prediction</div>
+        <div class="left-feat"><i class="bi bi-people"></i>Multi-role access for all staff</div>
+        <div class="left-feat"><i class="bi bi-bar-chart-line"></i>Real-time risk scoring dashboard</div>
+        <div class="left-feat"><i class="bi bi-heart-pulse"></i>Mental health & academic integration</div>
+    </div>
+</div>
+
+<div class="right-panel">
+    <div class="login-box">
+        <h2 class="login-title">Welcome back</h2>
+        <p class="login-sub">Sign in to access your dashboard</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}{% for category, message in messages %}
+            <div class="flash-alert flash-{{ category }}">
+                <i class="bi bi-exclamation-circle"></i>{{ message }}
+            </div>
+          {% endfor %}{% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <div class="field-group">
+                <label class="field-label">Email address</label>
+                <div class="field-input-wrap">
+                    <i class="bi bi-envelope field-icon"></i>
+                    <input type="email" name="email" class="field-input" placeholder="you@university.edu" required>
+                </div>
+            </div>
+            <div class="field-group">
+                <label class="field-label">Password</label>
+                <div class="field-input-wrap">
+                    <i class="bi bi-lock field-icon"></i>
+                    <input type="password" name="password" class="field-input" placeholder="Enter your password" required>
+                </div>
+            </div>
+            <button type="submit" class="btn-login">
+                <i class="bi bi-arrow-right-circle"></i>Sign In
+            </button>
+        </form>
+
+    </div>
+</div>
+
+</body>
+</html>
